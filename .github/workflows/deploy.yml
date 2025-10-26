@@ -1,0 +1,54 @@
+
+name: Build and Deploy Java Web App
+
+on:
+  push:
+    branches:
+      - main  # or your deployment branch
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      WAR_SOURCE: sample-java-code/java-web-app/target/java-web-app-1.0-SNAPSHOT.war
+      WAR_DEST: sample-java-code/java-web-app/ROOT.war
+      DOCKER_IMAGE: java-web-app
+      DOCKER_BUILD_DIR: sample-java-code/java-web-app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'  # Adjust based on your project
+
+      - name: Build WAR file
+        run: |
+          cd sample-java-code/java-web-app
+          mvn clean package
+
+      - name: Rename WAR to ROOT.war
+        run: |
+          cp ${{ env.WAR_SOURCE }} ${{ env.WAR_DEST }}
+
+      - name: Build Docker image
+        run: |
+          cd ${{ env.DOCKER_BUILD_DIR }}
+          docker build -t ${{ env.DOCKER_IMAGE }} .
+
+      - name: Run Docker container
+        run: |
+          docker run -d -p 8082:8080 ${{ env.DOCKER_IMAGE }}
+
+      - name: Push Docker image (optional)
+        if: success()
+        run: |
+          echo "Docker image ready to be pushed."
+          # docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          # docker tag ${{ env.DOCKER_IMAGE }} your-registry/${{ env.DOCKER_IMAGE }}
+          # docker push your-registry/${{ env.DOCKER_IMAGE }}
+
