@@ -2,6 +2,10 @@
 pipeline {
     agent any
 
+    tools {
+                maven 'Maven3' // 'M3' should match the name configured in Global Tool Configuration
+            }
+
     environment {
         WAR_SOURCE = 'sample-java-code/java-web-app/target/java-web-app-1.0-SNAPSHOT.war'
         WAR_DEST = 'sample-java-code/java-web-app/ROOT.war'
